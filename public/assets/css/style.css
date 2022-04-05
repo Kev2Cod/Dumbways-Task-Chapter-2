@@ -1,0 +1,49 @@
+/* Global */
+a{
+    text-decoration: none !important;
+    color: black !important;
+}
+
+i{
+    font-size: 30px;
+    color: black;
+}
+
+.bg-whitegray{
+    color: #f8f8f8;
+}
+
+.bg-gray{
+    color: #c9c9c9 !important;
+}
+
+/* End Global */
+
+.navbar {
+    height: 9vh;
+}
+
+.navbar img{
+    width: 45px;
+}
+
+.container-card{
+    height: 91vh;
+}
+
+.container-form {
+    width: 400px;
+}
+
+.card-text{
+    text-align: justify;
+}
+
+.icon-group i{
+    font-size: 40px;
+    margin-right: 25px;
+}
+
+.form-label{
+    font-size: 18px;
+}

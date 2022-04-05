@@ -1,0 +1,25 @@
+{
+  "name": "day-4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kev2Cod/task-chapter-2-day-4.git"
+  },
+  "author": "Kevin Williams",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kev2Cod/task-chapter-2-day-4/issues"
+  },
+  "homepage": "https://github.com/Kev2Cod/task-chapter-2-day-4#readme",
+  "dependencies": {
+    "express": "^4.17.3",
+    "hbs": "^4.2.0",
+    "nodemon": "^2.0.15",
+    "pg": "^8.7.3"
+  }
+}

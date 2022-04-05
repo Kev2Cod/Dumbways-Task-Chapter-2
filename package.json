@@ -1,0 +1,24 @@
+{
+  "name": "task-day2-chapter2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kev2Cod/task-day2-chapter2.git"
+  },
+  "author": "Kevin Williams Permana",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kev2Cod/task-day2-chapter2/issues"
+  },
+  "homepage": "https://github.com/Kev2Cod/task-day2-chapter2#readme",
+  "dependencies": {
+    "express": "^4.17.3",
+    "hbs": "^4.2.0",
+    "nodemon": "^2.0.15"
+  }
+}

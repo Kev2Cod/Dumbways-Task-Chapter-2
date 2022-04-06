@@ -1,22 +1,29 @@
 const express = require('express')
-const { get } = require('express/lib/response')
-const res = require('express/lib/response')
-const dbPool = require('./connection/db')
+
+const bcrypt = require('bcrypt')
+const session = require('express-session')
+const flash = require('express-flash')
 
 const app = express()
-// const path = require('path')
 const port = 5000
 
 const db = require('./connection/db')
+const { cookie } = require('express/lib/response')
 
-// view engine setup 
 app.set('view engine', "hbs") // set view engine hbs
-
 app.use('/public', express.static(__dirname + '/public')) // set public path/folder
-
 app.use(express.urlencoded({ extended: false })) // encode / convert
 
-let isLogin = true; // set if user login
+app.use(flash())
+
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 2 * 60 * 60 * 1000, // 2 Hour
+    }
+}))
 
 let projects = []
 
@@ -40,13 +47,14 @@ app.get('/', function (req, res) {
                     nodeJs: checkboxes(item.technologies[0]),
                     reactJs: checkboxes(item.technologies[1]),
                     laravel: checkboxes(item.technologies[2]),
-                    ember: checkboxes(item.technologies[3])
+                    ember: checkboxes(item.technologies[3]),
+                    isLogin: req.session.isLogin
                 }
             })
-            console.log('----------Fetch Database-----------');
-            console.log(data);
-            console.log('-----------------------------------');
-            res.render('index', { login: isLogin, project: data })
+            // console.log('----------Fetch Database For Index.hbs-----------');
+            // console.log(data);
+            // console.log('----------------- End ------------------');
+            res.render('index', {isLogin: req.session.isLogin, user: req.session.user, project: data })
         })
     })
 })
@@ -71,9 +79,99 @@ app.get('/delete-project/:id', (req, res) => {
 
 // GET: APP PROJECT
 app.get('/add-project', function (req, res) {
-
+    if(!req.session.isLogin){
+        req.flash('danger', 'Silahkan Login!!')
+        return res.redirect('/login')
+    } 
     res.render('add-project')
 })
+
+
+// GET: REGISTER
+app.get('/register', (req, res) => {
+    res.render('register')
+})
+
+// POST: REGISTER
+app.post('/register', (req, res) => {
+    let { inputName, inputEmail, inputPassword } = req.body //! destruction
+    const hashedPassword = bcrypt.hashSync(inputPassword, 10)
+
+    const query = `INSERT INTO public.tb_users(name, email, password)
+        VALUES ('${inputName}', '${inputEmail}', '${hashedPassword}');`
+
+    db.connect(function (err, client, done) {
+        if (err) throw err
+
+        client.query(query, function (err, result) {
+            if (err) throw err
+            done()
+
+            req.flash('success', '🥳Akun anda berhasil ditambahkan🥳 silahkan login 👇')
+            res.redirect('/login')
+        })
+    })
+})
+
+// GET: LOGIN
+app.get('/login', (req, res) => {
+
+    res.render('login')
+})
+
+// POST : LOGIN
+app.post('/login', (req, res) => {
+    let { inputEmail, inputPassword } = req.body
+    const query = `SELECT * FROM tb_users WHERE email='${inputEmail}';`
+
+    db.connect(function (err, client, done) {
+        if (err) throw err
+        client.query(query, function (err, result) {
+            if (err) throw err
+            done()
+
+            if (result.rows.length == 0) {
+                req.flash('danger', 'Email Belum Terdaftar')
+
+                return res.redirect('/login')
+            }
+
+            let dataUser = result.rows[0] //! data user ditampung di variabel baru
+            let isMatch = bcrypt.compareSync(inputPassword, dataUser.password)
+
+            // console.log('---------- Check Password -----------');
+            // console.log(isMatch);
+            // console.log('---------------- End -------------------');
+
+            if (isMatch) {
+                req.session.isLogin = true,
+                req.session.user = {
+                        id: dataUser.id,
+                        name: dataUser.name,
+                        email: dataUser.email
+                    }
+
+                    console.log('Berhasil Login');
+                req.flash('success', 'Login Success')
+                res.redirect('/')
+            } else {
+                console.log('Password Salah');
+                req.flash('danger', 'Password Salah')
+                res.redirect('/login')
+            }
+
+        })
+    })
+})
+
+// GET: LOGOUT
+app.get('/logout', function(req, res){
+    req.session.destroy()
+
+    res.redirect('/')
+})
+
+
 
 // GET: CONTACT
 app.get('/contact', function (req, res) {
@@ -160,7 +258,7 @@ app.get('/edit-project/:id', (req, res) => {
             done();
 
             data = {
-                id:id, //! harus ada
+                id: id, //! harus ada
                 projectName: data.name,
                 description: data.description,
                 startDate: convertFormatDate(data.start_date), //! format datenya di convert, 
@@ -218,7 +316,7 @@ function durationProject(startDate, endDate) {
     let start = new Date(startDate);
     let end = new Date(endDate);
 
-    
+
     let duration = end.getTime() - start.getTime();
     let year = Math.floor(duration / (1000 * 3600 * 24 * 30 * 12))
     let month = Math.round(duration / (1000 * 3600 * 24 * 30));
@@ -273,7 +371,7 @@ function convertFormatDate(waktu) {
 function checkboxes(condition) {
     if (condition === 'on' || condition === 'true') {
         return true
-    } else{
+    } else {
         return false
     }
 }

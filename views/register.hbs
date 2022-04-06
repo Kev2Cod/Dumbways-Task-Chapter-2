@@ -16,7 +16,7 @@
     <!-- End Style -->
 </head>
 
-<body >
+<body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
@@ -41,12 +41,28 @@
         </div>
     </nav>
     <!-- End Navbar -->
-    
+
     <!-- Form Add-Project -->
     <form action="/register" method="POST">
         <div class="container-fluid d-flex align-items-center justify-content-center text-black">
             <div class="container-form">
                 <h2 class="text-center my-5 ">REGISTER YOUR ACCOUNT</h2>
+
+                {{!-- ALERT --}}
+                {{#if messages.danger}}
+                <div class="alert alert-danger" role="alert">
+                    {{messages.danger}}
+                </div>
+                {{/if }}
+
+                {{#if messages.success}}
+                <div class="alert alert-success" role="alert">
+                    {{messages.success}}
+                </div>
+                {{/if}}
+                {{!-- END ALERT --}}
+
+
                 <div class="mb-3">
                     <label for="input-name" class="form-label">Name</label>
                     <input type="text" class="form-control shadow-sm bg-body rounded " id="input-name" name="inputName" required>
@@ -71,10 +87,11 @@
     <!-- End Form-Project -->
 
 
-<!-- Javascript -->
-<!-- Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-<!-- End Javascript -->
+    <!-- Javascript -->
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- End Javascript -->
 </body>
 
 </html>

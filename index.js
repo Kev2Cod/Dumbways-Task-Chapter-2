@@ -54,7 +54,7 @@ app.get('/', function (req, res) {
             // console.log('----------Fetch Database For Index.hbs-----------');
             // console.log(data);
             // console.log('----------------- End ------------------');
-            res.render('index', {isLogin: req.session.isLogin, user: req.session.user, project: data })
+            res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
         })
     })
 })
@@ -79,10 +79,10 @@ app.get('/delete-project/:id', (req, res) => {
 
 // GET: APP PROJECT
 app.get('/add-project', function (req, res) {
-    if(!req.session.isLogin){
+    if (!req.session.isLogin) {
         req.flash('danger', 'Silahkan Login!!')
         return res.redirect('/login')
-    } 
+    }
     res.render('add-project')
 })
 
@@ -97,21 +97,33 @@ app.post('/register', (req, res) => {
     let { inputName, inputEmail, inputPassword } = req.body //! destruction
     const hashedPassword = bcrypt.hashSync(inputPassword, 10)
 
-    const query = `INSERT INTO public.tb_users(name, email, password)
+    const querySelect = `SELECT * FROM tb_users;`
+    const queryInsert = `INSERT INTO public.tb_users(name, email, password)
         VALUES ('${inputName}', '${inputEmail}', '${hashedPassword}');`
 
     db.connect(function (err, client, done) {
         if (err) throw err
 
-        client.query(query, function (err, result) {
+        client.query(querySelect, function (err, result) {
             if (err) throw err
             done()
 
-            req.flash('success', '🥳Akun anda berhasil ditambahkan🥳 silahkan login 👇')
-            res.redirect('/login')
+            if (result.rows[0].email == inputEmail) { //! Error jika menambahkan email baru
+                req.flash('danger', 'Email telah terdaftar!')
+                return res.redirect('/register')
+            } else {
+                client.query(queryInsert, function (err, result) {
+                    if (err) throw err
+                    done()
+
+                    req.flash('success', '🥳Akun anda berhasil ditambahkan🥳, Silahkan login 👇')
+                    return res.redirect('/login') 
+                })
+            }
         })
     })
 })
+
 
 // GET: LOGIN
 app.get('/login', (req, res) => {
@@ -145,13 +157,13 @@ app.post('/login', (req, res) => {
 
             if (isMatch) {
                 req.session.isLogin = true,
-                req.session.user = {
+                    req.session.user = {
                         id: dataUser.id,
                         name: dataUser.name,
                         email: dataUser.email
                     }
 
-                    console.log('Berhasil Login');
+                console.log('Berhasil Login');
                 req.flash('success', 'Login Success')
                 res.redirect('/')
             } else {
@@ -165,7 +177,7 @@ app.post('/login', (req, res) => {
 })
 
 // GET: LOGOUT
-app.get('/logout', function(req, res){
+app.get('/logout', function (req, res) {
     req.session.destroy()
 
     res.redirect('/')

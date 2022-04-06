@@ -1,0 +1,86 @@
+<html>
+
+<head>
+    <title>Chapter 2 - Task Day 4 - Detail Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="../public/assets/css/style.css" />
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#"><img src="../public/assets/img/logo.png" alt="logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/add-project">Add Project</a>
+                    </li>
+                </ul>
+                <a class="btn btn-dark text-white" href="/contact">My Contact</a>
+            </div>
+        </div>
+    </nav>
+    <!-- End Navbar -->
+
+    <!-- Detail-Project-Section -->
+    <div class="container-fluid">
+        <h3 class="text-center my-5 fs-1">{{project.projectName}}</h3>
+        <div class="row d-flex justify-content-center">
+            <div class="col-6 d-flex justify-content-center ">
+                <img src="../public/assets/img/astronot.jpg" class="rounded" style="max-width:500px;" alt="Image Project">
+            </div>
+            <div class="col-4">
+                <p class="fw-bold ">Duration</p>
+                <div class="detail-duration">
+                    <p class="fs-5"><i class="fa-solid fa-calendar-days me-2" ></i>{{project.startDate}} - {{project.endDate}}</p>
+                    <p class="fs-5"><i class="fa-solid fa-clock me-2"></i> {{project.duration}}</p>
+                </div>
+                <p>Technologies</p>
+                <div class="row">
+                    <div class="techno-left col-6">
+                        {{#if project.nodeJs}}
+                        <p class="fs-5" ><i class="fa-brands fa-node me-2"></i> NodeJs</p>
+                        {{/if}}
+
+                        {{#if project.reactJs}}
+                        <p class="fs-5" ><i class="fa-brands fa-react me-2"></i>ReactJs</p>
+                        {{/if}}
+                    </div>
+                    
+                    <div class="techno-right col-6">
+                        {{#if project.laravel}}
+                        <p class="fs-5" ><i class="fa-brands fa-laravel me-2"></i>Laravel</p>
+                        {{/if}}
+
+                        {{#if project.ember}}
+                        <p class="fs-5" ><i class="fa-brands fa-ember me-4"></i>Ember</p>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+    <!-- Description -->
+    <div class="container mt-5">
+        <p>{{project.description}}</p>
+
+    </div>
+    <!-- End Description -->
+    <!-- End Detail-Project -->
+
+</body>
+
+</html>

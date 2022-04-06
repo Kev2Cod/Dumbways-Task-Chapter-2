@@ -1,0 +1,17 @@
+{
+  "name": "day-5",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon node index.js" 
+  },
+  "author": "Kevin",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.3",
+    "hbs": "^4.2.0",
+    "nodemon": "^2.0.15",
+    "pg": "^8.7.3"
+  }
+}

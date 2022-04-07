@@ -39,7 +39,7 @@
     <!-- End Navbar -->
 
     {{!-- Add Form Project --}}
-    <form action="/update-project/{{project.id}}" method="POST">
+    <form action="/update-project/{{project.id}}" method="POST" enctype="multipart/form-data">
         <div class="container-fluid d-flex align-items-center justify-content-center text-black">
             <div class="container-form">
                 <h2 class="text-center my-5">EDIT MY PROJECT</h2>
@@ -109,7 +109,7 @@
                 <!-- Input Image -->
                 <div class="mb-3">
                     <label for="formFile" class="form-label">Upload Image</label>
-                    <input class="form-control shadow-sm bg-body rounded" type="file" id="input-image" value="{{project.image}}" name="image">
+                    <input class="form-control shadow-sm bg-body rounded" type="file" id="input-image" value="{{project.image}}" name="inputImage">
                 </div>
                 <!-- Input Image -->
 

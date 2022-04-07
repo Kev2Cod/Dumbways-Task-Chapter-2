@@ -105,7 +105,7 @@ app.get('/delete-project/:id', (req, res) => {
 
     const querySelect = `SELECT image FROM tb_projects WHERE tb_projects.id =${id};`
 
-    db.connect(function (err, client, done) {                      
+    db.connect(function (err, client, done) {
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
 
         client.query(querySelect, function (err, result) {
@@ -128,7 +128,7 @@ app.get('/delete-project/:id', (req, res) => {
             let data = result.rows
             // done()
             console.log(data)
-            res.redirect('/login')
+            res.redirect('/')
         })
     })
 
@@ -295,8 +295,7 @@ app.post('/add-project', upload.single('inputImage'), function (req, res) {
         nodeJs: checkboxes(data.nodeJs),
         reactJs: checkboxes(data.reactJs),
         laravel: checkboxes(data.laravel),
-        ember: checkboxes(data.ember),
-        image: data.image
+        ember: checkboxes(data.ember)
     }
 
     const query = `INSERT INTO public.tb_projects(
@@ -349,9 +348,10 @@ app.get('/edit-project/:id', (req, res) => {
 })
 
 // POST: UPDATE PROJECT
-app.post('/update-project/:id', (req, res) => {
+app.post('/update-project/:id', upload.single('inputImage'), (req, res) => {
     let data = req.body
     let id = req.params.id
+    const image = req.file.filename
 
     data = {
         projectName: data.projectName,
@@ -367,8 +367,8 @@ app.post('/update-project/:id', (req, res) => {
 
     // console.log(data);
 
-    const query = `UPDATE public.tb_projects 
-    SET name='${data.projectName}', start_date='${data.startDate}', end_date='${data.endDate}', description='${data.description}', technologies='{"${data.nodeJs}","${data.reactJs}","${data.laravel}","${data.ember}"}', image='${data.image}'
+    const query = `UPDATE tb_projects 
+    SET name='${data.projectName}', start_date='${data.startDate}', end_date='${data.endDate}', description='${data.description}', technologies='{"${data.nodeJs}","${data.reactJs}","${data.laravel}","${data.ember}"}', image='${image}'
     WHERE id=${id};`
 
     db.connect(function (err, client, done) {

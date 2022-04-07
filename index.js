@@ -9,6 +9,7 @@ const port = 5000
 
 const db = require('./connection/db')
 const upload = require('./middlewares/fileUpload')
+const path = require('path')
 
 app.set('view engine', "hbs") // set view engine hbs
 app.use('/public', express.static(__dirname + '/public')) // set path folder public
@@ -32,8 +33,8 @@ app.use(session({
 // SHOW FETCH DATABASE
 app.get('/', function (req, res) {
 
-    const query = `SELECT tb_projects.id, tb_users.name AS author, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
-	FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id`
+    const query = `SELECT tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+	FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id;`
 
     db.connect(function (err, client, done) {
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
@@ -42,11 +43,12 @@ app.get('/', function (req, res) {
             client.query(query, function (err, result) {
                 if (err) throw err // Kondisi untuk menampilkan error query
                 let data = result.rows
+                done()
 
                 data = data.map(function (item) {
                     return {
-                        id: item.id,
-                        author: item.author,
+                        authorId: item.author_id,
+                        authorName: item.author_name,
                         projectName: item.project_name,
                         description: item.description.slice(0, 150) + '.....',
                         duration: durationProject(item.start_date, item.end_date),
@@ -64,7 +66,7 @@ app.get('/', function (req, res) {
         } else {
             const authorId = req.session.user.id
 
-            const queryAfterLogin = `SELECT tb_projects.id, tb_users.name AS author, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+            const queryAfterLogin = `SELECT tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
             FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
             WHERE author_id = ${authorId}`
 
@@ -74,8 +76,8 @@ app.get('/', function (req, res) {
 
                 data = data.map(function (item) {
                     return {
-                        id: item.id,
-                        author: item.author,
+                        authorId: item.author_id,
+                        authorName: item.author_name,
                         projectName: item.project_name,
                         description: item.description.slice(0, 150) + '.....',
                         duration: durationProject(item.start_date, item.end_date),
@@ -87,19 +89,40 @@ app.get('/', function (req, res) {
                         isLogin: req.session.isLogin
                     }
                 })
-
-                // console.log('----------Fetch Database For Index.hbs AFTER LOGIN-----------');
-                // console.log(data);
-                // console.log('----------------- End ------------------');
                 res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
             })
         }
     })
 })
 
+// POST : DELETE PROJECT
+app.post('/delete-project/:id', (req, res, next) => {
+    const authorId = req.session.user.id
+    const query = `SELECT image FROM tb_projects WHERE author_id=${id};`
+
+    db.connect(function (err, client, done) {
+        if (err) throw err // Kondisi untuk menampilkan error koneksi database
+
+        client.query(query, function (err, result) {
+            if (err) throw err // Kondisi untuk menampilkan error query
+            let data = result.rows[0]
+            done();
+
+            const removeImage = (filePath) => {
+                console.log('filePath', filePath)
+                console.log('dir name: ', __dirname)
+            }
+            removeImage(data)
+
+        })
+
+        res.redirect('/')
+    })
+})
+
 // GET: DELETE PROJECT
 app.get('/delete-project/:id', (req, res) => {
-    let id = req.params.id
+    const authorId = req.session.user.id
 
     const query = `DELETE FROM public.tb_projects WHERE id=${id};`
 
@@ -115,8 +138,6 @@ app.get('/delete-project/:id', (req, res) => {
     })
 })
 
-// POST : DELETE PROJECT
-app.post('/delete-project/:id')
 
 // GET: ADD PROJECT
 app.get('/add-project', function (req, res) {
@@ -192,11 +213,9 @@ app.post('/login', (req, res) => {
             }
 
             let dataUser = result.rows[0] //! data user ditampung di variabel baru
-            let isMatch = bcrypt.compareSync(inputPassword, dataUser.password)
 
-            // console.log('---------- Check Password -----------');
-            // console.log(isMatch);
-            // console.log('---------------- End -------------------');
+
+            let isMatch = bcrypt.compareSync(inputPassword, dataUser.password)
 
             if (isMatch) {
                 req.session.isLogin = true,
@@ -205,7 +224,7 @@ app.post('/login', (req, res) => {
                         name: dataUser.name,
                         email: dataUser.email
                     }
-
+                console.log(dataUser)
                 console.log('Berhasil Login');
                 req.flash('success', 'Login Success')
                 res.redirect('/')

@@ -8,10 +8,11 @@ const app = express()
 const port = 5000
 
 const db = require('./connection/db')
-const { cookie } = require('express/lib/response')
+const upload = require('./middlewares/fileUpload')
 
 app.set('view engine', "hbs") // set view engine hbs
-app.use('/public', express.static(__dirname + '/public')) // set public path/folder
+app.use('/public', express.static(__dirname + '/public')) // set path folder public
+app.use('/uploads', express.static(__dirname + '/uploads')) // set path folder upload
 app.use(express.urlencoded({ extended: false })) // encode / convert
 
 app.use(flash())
@@ -25,37 +26,74 @@ app.use(session({
     }
 }))
 
-let projects = []
+
 
 
 // SHOW FETCH DATABASE
 app.get('/', function (req, res) {
+
+    const query = `SELECT tb_projects.id, tb_users.name AS author, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+	FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id`
+
     db.connect(function (err, client, done) {
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
 
-        client.query(`SELECT * FROM tb_projects`, function (err, result) {
-            if (err) throw err // Kondisi untuk menampilkan error query
-            let data = result.rows
-            done();
+        if (req.session.isLogin != true) { //! User Belum Login
+            client.query(query, function (err, result) {
+                if (err) throw err // Kondisi untuk menampilkan error query
+                let data = result.rows
 
-            data = data.map(function (item) {
-                return {
-                    id: item.id,
-                    projectName: item.name,
-                    description: item.description.slice(0, 150) + '.....',
-                    duration: durationProject(item.start_date, item.end_date),
-                    nodeJs: checkboxes(item.technologies[0]),
-                    reactJs: checkboxes(item.technologies[1]),
-                    laravel: checkboxes(item.technologies[2]),
-                    ember: checkboxes(item.technologies[3]),
-                    isLogin: req.session.isLogin
-                }
+                data = data.map(function (item) {
+                    return {
+                        id: item.id,
+                        author: item.author,
+                        projectName: item.project_name,
+                        description: item.description.slice(0, 150) + '.....',
+                        duration: durationProject(item.start_date, item.end_date),
+                        nodeJs: checkboxes(item.technologies[0]),
+                        reactJs: checkboxes(item.technologies[1]),
+                        laravel: checkboxes(item.technologies[2]),
+                        ember: checkboxes(item.technologies[3]),
+                        image: item.image,
+                        isLogin: req.session.isLogin
+                    }
+                })
+                console.log(data);
+                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
             })
-            // console.log('----------Fetch Database For Index.hbs-----------');
-            // console.log(data);
-            // console.log('----------------- End ------------------');
-            res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
-        })
+        } else {
+            const authorId = req.session.user.id
+
+            const queryAfterLogin = `SELECT tb_projects.id, tb_users.name AS author, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+            FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
+            WHERE author_id = ${authorId}`
+
+            client.query(queryAfterLogin, function (err, result) {
+                if (err) throw err // Kondisi untuk menampilkan error query
+                let data = result.rows
+
+                data = data.map(function (item) {
+                    return {
+                        id: item.id,
+                        author: item.author,
+                        projectName: item.project_name,
+                        description: item.description.slice(0, 150) + '.....',
+                        duration: durationProject(item.start_date, item.end_date),
+                        nodeJs: checkboxes(item.technologies[0]),
+                        reactJs: checkboxes(item.technologies[1]),
+                        laravel: checkboxes(item.technologies[2]),
+                        ember: checkboxes(item.technologies[3]),
+                        image: item.image,
+                        isLogin: req.session.isLogin
+                    }
+                })
+
+                // console.log('----------Fetch Database For Index.hbs AFTER LOGIN-----------');
+                // console.log(data);
+                // console.log('----------------- End ------------------');
+                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
+            })
+        }
     })
 })
 
@@ -77,18 +115,23 @@ app.get('/delete-project/:id', (req, res) => {
     })
 })
 
-// GET: APP PROJECT
+// POST : DELETE PROJECT
+app.post('/delete-project/:id')
+
+// GET: ADD PROJECT
 app.get('/add-project', function (req, res) {
     if (!req.session.isLogin) {
         req.flash('danger', 'Silahkan Login!!')
         return res.redirect('/login')
     }
-    res.render('add-project')
+
+    res.render('add-project', { isLogin: req.session.isLogin, user: req.session.user })
 })
 
 
 // GET: REGISTER
 app.get('/register', (req, res) => {
+
     res.render('register')
 })
 
@@ -97,7 +140,7 @@ app.post('/register', (req, res) => {
     let { inputName, inputEmail, inputPassword } = req.body //! destruction
     const hashedPassword = bcrypt.hashSync(inputPassword, 10)
 
-    const querySelect = `SELECT * FROM tb_users;`
+    const querySelect = `SELECT * FROM tb_users WHERE email='${inputEmail}';`
     const queryInsert = `INSERT INTO public.tb_users(name, email, password)
         VALUES ('${inputName}', '${inputEmail}', '${hashedPassword}');`
 
@@ -108,16 +151,16 @@ app.post('/register', (req, res) => {
             if (err) throw err
             done()
 
-            if (result.rows[0].email == inputEmail) { //! Error jika menambahkan email baru
+            if (result.rows.length != 0) {
                 req.flash('danger', 'Email telah terdaftar!')
+                done()
                 return res.redirect('/register')
             } else {
-                client.query(queryInsert, function (err, result) {
+                client.query(queryInsert, function (err, result) { //! Error jika menambahkan email baru
                     if (err) throw err
                     done()
-
-                    req.flash('success', '🥳Akun anda berhasil ditambahkan🥳, Silahkan login 👇')
-                    return res.redirect('/login') 
+                    req.flash('success', '🥳Akun anda berhasil ditambahkan🥳, \n Silahkan login 👇')
+                    return res.redirect('/login')
                 })
             }
         })
@@ -138,13 +181,13 @@ app.post('/login', (req, res) => {
 
     db.connect(function (err, client, done) {
         if (err) throw err
+
         client.query(query, function (err, result) {
             if (err) throw err
             done()
 
             if (result.rows.length == 0) {
                 req.flash('danger', 'Email Belum Terdaftar')
-
                 return res.redirect('/login')
             }
 
@@ -166,9 +209,10 @@ app.post('/login', (req, res) => {
                 console.log('Berhasil Login');
                 req.flash('success', 'Login Success')
                 res.redirect('/')
+
             } else {
                 console.log('Password Salah');
-                req.flash('danger', 'Password Salah')
+                req.flash('warning', 'Password Salah')
                 res.redirect('/login')
             }
 
@@ -179,11 +223,8 @@ app.post('/login', (req, res) => {
 // GET: LOGOUT
 app.get('/logout', function (req, res) {
     req.session.destroy()
-
     res.redirect('/')
 })
-
-
 
 // GET: CONTACT
 app.get('/contact', function (req, res) {
@@ -223,8 +264,10 @@ app.get('/detail-project/:id', function (req, res) {
 })
 
 // POST: ADD PROJECT
-app.post('/add-project', function (req, res) {
+app.post('/add-project', upload.single('inputImage'), function (req, res) {
     let data = req.body
+    const authorId = req.session.user.id
+    const image = req.file.filename
 
     data = {
         projectName: data.projectName,
@@ -239,9 +282,9 @@ app.post('/add-project', function (req, res) {
     }
 
     const query = `INSERT INTO public.tb_projects(
-        name, "start_date", "end_date", description, technologies, image)
-        VALUES ('${data.projectName}', '${data.startDate}', '${data.endDate}', '${data.description}', 
-        '{"${data.nodeJs}","${data.reactJs}","${data.laravel}","${data.ember}"}', '${data.image}')`
+        author_id, name, start_date, end_date, description, technologies, image)
+        VALUES ('${authorId}', '${data.projectName}', '${data.startDate}', '${data.endDate}', '${data.description}', '{"${data.nodeJs}","${data.reactJs}","${data.laravel}","${data.ember}"}' , '${image}');`
+
 
     db.connect(function (err, client, done) {
         if (err) throw err
@@ -391,4 +434,3 @@ function checkboxes(condition) {
 app.listen(port, function () {
     console.log(`Server Listen on port ${port}`);
 })
-

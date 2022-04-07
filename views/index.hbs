@@ -14,14 +14,14 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="#"><img src="../public/assets/img/logo.png" alt="logo"></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="collapse navbar-collapse " id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link active fw-bold" aria-current="page" href="/">Home</a>
@@ -31,7 +31,7 @@
                     </li>
                 </ul>
                 {{#if isLogin}}
-                <a class="nav-link active fw-bold" href="#">Halo {{user.name}} 🥳</a>
+                <a class="nav-link active  fw-bold" href="#">Halo, {{user.name}} 🥳</a>
                 <a class="nav-link" href="/logout">Logout</a>
                 {{else}}
                 <a class="nav-link" href="/register">Register</a>
@@ -45,8 +45,8 @@
 
     <!-- Container Card Detail -->
 
-    <div class="container-card d-flex justify-content-center align-items-center ">
-        <div class="card shadow-lg p-3 bg-light" style="min-width: 800px; max-width:900px ;">
+    <div class="container-card d-flex justify-content-center align-items-center" >
+        <div class="card shadow-lg p-3 bg-light" style="min-width: 700px; max-width:900px;">
             <div class="row g-0 p-3 ">
                 <div class="col-8 pe-3">
                     <div class="card-body">
@@ -99,7 +99,7 @@
                 {{#each project}}
                 <div class="col mb-5">
                     <div class="card h-100">
-                        <img src="../public/assets/img/astronot.jpg" class="card-img-top" alt="Image Project">
+                        <img src="uploads/{{this.image}}" class="card-img-top" alt="Image Project">
                         <div class="card-body p-4 ">
                             <a href="/detail-project/{{this.id}}">
                                 <h5 class="card-title">{{this.projectName}}</h5>
@@ -107,6 +107,7 @@
                             <p class="fw-light">Durasi : {{this.duration}}</p>
                             <p class="card-text">{{this.description}}</p>
                             <!-- List-Icon -->
+                            
 
                             <div class="icon-checkbox mb-3">
                                 {{#if nodeJs}}
@@ -126,7 +127,10 @@
                                 {{/if}}
                             </div>
                             <!-- End List-Icon -->
-
+                            {{#if isLogin}}
+                            {{else}}
+                            <div id="author" class="form-text "> 1 Januari 2020 | {{this.author}}  </div>
+                            {{/if}}
                             <!-- Button Card -->
                             {{#if isLogin}}
                             <div class="row d-flex justify-content-around">

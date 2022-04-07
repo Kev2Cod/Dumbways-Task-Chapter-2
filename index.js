@@ -10,6 +10,7 @@ const port = 5000
 const db = require('./connection/db')
 const upload = require('./middlewares/fileUpload')
 const path = require('path')
+const fs = require('fs')
 
 app.set('view engine', "hbs") // set view engine hbs
 app.use('/public', express.static(__dirname + '/public')) // set path folder public
@@ -33,8 +34,8 @@ app.use(session({
 // SHOW FETCH DATABASE
 app.get('/', function (req, res) {
 
-    const query = `SELECT tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
-	FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id;`
+    const query = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+    FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id`
 
     db.connect(function (err, client, done) {
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
@@ -47,6 +48,7 @@ app.get('/', function (req, res) {
 
                 data = data.map(function (item) {
                     return {
+                        id: item.project_id,
                         authorId: item.author_id,
                         authorName: item.author_name,
                         projectName: item.project_name,
@@ -66,7 +68,7 @@ app.get('/', function (req, res) {
         } else {
             const authorId = req.session.user.id
 
-            const queryAfterLogin = `SELECT tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+            const queryAfterLogin = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
             FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
             WHERE author_id = ${authorId}`
 
@@ -76,6 +78,7 @@ app.get('/', function (req, res) {
 
                 data = data.map(function (item) {
                     return {
+                        id: item.project_id,
                         authorId: item.author_id,
                         authorName: item.author_name,
                         projectName: item.project_name,
@@ -89,54 +92,48 @@ app.get('/', function (req, res) {
                         isLogin: req.session.isLogin
                     }
                 })
+
                 res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
             })
         }
     })
 })
 
-// POST : DELETE PROJECT
-app.post('/delete-project/:id', (req, res, next) => {
-    const authorId = req.session.user.id
-    const query = `SELECT image FROM tb_projects WHERE author_id=${id};`
-
-    db.connect(function (err, client, done) {
-        if (err) throw err // Kondisi untuk menampilkan error koneksi database
-
-        client.query(query, function (err, result) {
-            if (err) throw err // Kondisi untuk menampilkan error query
-            let data = result.rows[0]
-            done();
-
-            const removeImage = (filePath) => {
-                console.log('filePath', filePath)
-                console.log('dir name: ', __dirname)
-            }
-            removeImage(data)
-
-        })
-
-        res.redirect('/')
-    })
-})
-
 // GET: DELETE PROJECT
 app.get('/delete-project/:id', (req, res) => {
-    const authorId = req.session.user.id
+    const id = req.params.id
 
-    const query = `DELETE FROM public.tb_projects WHERE id=${id};`
+    const querySelect = `SELECT image FROM tb_projects WHERE tb_projects.id =${id};`
 
-    db.connect(function (err, client, done) {
+    db.connect(function (err, client, done) {                      
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
 
-        client.query(query, function (err, result) {
+        client.query(querySelect, function (err, result) {
             if (err) throw err // Kondisi untuk menampilkan error query
-            done();
+            let data = result.rows[0].image
+
+            const removeImage = (filePath) => {
+                console.log('filePath: ', filePath)
+                console.log('dir name: ', __dirname)
+
+                filePath = path.join(__dirname, '/uploads', filePath)
+                fs.unlink(filePath, err => console.log(err))
+            }
+            removeImage(data)
         })
 
-        res.redirect('/')
+        const queryDelete = `DELETE FROM tb_projects WHERE tb_projects.id=${id};`
+        client.query(queryDelete, function (err, result) {
+            if (err) throw err // Kondisi untuk menampilkan error query
+            let data = result.rows
+            // done()
+            console.log(data)
+            res.redirect('/login')
+        })
     })
+
 })
+
 
 
 // GET: ADD PROJECT
@@ -224,7 +221,7 @@ app.post('/login', (req, res) => {
                         name: dataUser.name,
                         email: dataUser.email
                     }
-                console.log(dataUser)
+                // console.log(dataUser)
                 console.log('Berhasil Login');
                 req.flash('success', 'Login Success')
                 res.redirect('/')
@@ -253,7 +250,9 @@ app.get('/contact', function (req, res) {
 // GET: DETAIL PROJECT
 app.get('/detail-project/:id', function (req, res) {
     const id = req.params.id
-    const query = `SELECT * FROM tb_projects WHERE id=${id}`
+    const query = `	SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+    FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
+    WHERE tb_projects.id =${id}`
 
     db.connect(function (err, client, done) {
         if (err) throw err // Mengecek tampilan error koneksi database
@@ -264,7 +263,7 @@ app.get('/detail-project/:id', function (req, res) {
             done();
 
             data = {
-                projectName: data.name,
+                projectName: data.project_name,
                 description: data.description,
                 startDate: getFullTime(data.start_date),
                 endDate: getFullTime(data.end_date),

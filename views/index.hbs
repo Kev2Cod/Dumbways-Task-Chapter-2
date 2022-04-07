@@ -101,7 +101,7 @@
                     <div class="card h-100">
                         <img src="uploads/{{this.image}}" class="card-img-top" alt="Image Project">
                         <div class="card-body p-4 ">
-                            <a href="/detail-project/{{this.authorId}}">
+                            <a href="/detail-project/{{this.id}}">
                                 <h5 class="card-title">{{this.projectName}}</h5>
                             </a>
                             <p class="fw-light">Durasi : {{this.duration}}</p>
@@ -134,8 +134,8 @@
                             <!-- Button Card -->
                             {{#if isLogin}}
                             <div class="row d-flex justify-content-around">
-                                <a href="/edit-project/{{this.author}}" class="btn btn-dark text-white col-5 px-1">edit</a>
-                                <a href="/delete-project/{{this.author}}" class="btn btn-dark text-white col-5 px-1">delete</a>
+                                <a  href="/edit-project/{{this.id}}" class="btn btn-dark text-white col-5 px-1">edit</a>
+                                <a href="/delete-project/{{this.id}}" class="btn btn-dark text-white col-5 px-1">delete</a>
                             </div>
                             {{/if}}
                             <!-- End Button Card -->

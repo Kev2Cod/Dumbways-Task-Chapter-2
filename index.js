@@ -42,6 +42,7 @@ app.get('/', function (req, res) {
             client.query(query, function (err, result) {
                 if (err) throw err // Kondisi untuk menampilkan error query
                 let data = result.rows
+                done()
 
                 data = data.map(function (item) {
                     return {
@@ -72,7 +73,7 @@ app.get('/', function (req, res) {
             client.query(queryAfterLogin, function (err, result) {
                 if (err) throw err // Kondisi untuk menampilkan error query
                 let data = result.rows
-                done
+                done()
 
                 data = data.map(function (item) {
                     return {
@@ -117,6 +118,7 @@ app.post('/register', (req, res) => {
 
         client.query(querySelect, function (err, result) {
             if (err) throw err
+            done()
 
             if (result.rows.length != 0) {
                 req.flash('danger', 'Email telah terdaftar!')
@@ -317,6 +319,7 @@ app.get('/delete-project/:id', (req, res) => {
         client.query(querySelect, function (err, result) {
             if (err) throw err // Kondisi untuk menampilkan error query
             let data = result.rows[0].image
+            done()
 
             const removeImage = (filePath) => {
                 console.log('filePath: ', filePath)
@@ -332,7 +335,6 @@ app.get('/delete-project/:id', (req, res) => {
         client.query(queryDelete, function (err, result) {
             if (err) throw err // Kondisi untuk menampilkan error query
             let data = result.rows
-            done()
             console.log(data)
             res.redirect('/')
         })

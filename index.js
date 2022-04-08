@@ -118,7 +118,6 @@ app.post('/register', (req, res) => {
 
         client.query(querySelect, function (err, result) {
             if (err) throw err
-            done()
 
             if (result.rows.length != 0) {
                 req.flash('danger', 'Email telah terdaftar!')
@@ -208,20 +207,24 @@ app.get('/detail-project/:id', function (req, res) {
             done();
 
             data = {
+                id: data.project_id,
+                authorId: data.author_id,
+                authorName: data.author_name,
                 projectName: data.project_name,
-                description: data.description,
-                startDate: getFullTime(data.start_date),
-                endDate: getFullTime(data.end_date),
+                description: data.description.slice(0, 150) + '.....',
+                startDate: convertFormatDate(data.start_date), //! format datenya di convert, 
+                endDate: convertFormatDate(data.end_date), //! format datenya di convert, 
                 duration: durationProject(data.start_date, data.end_date),
                 nodeJs: checkboxes(data.technologies[0]),
                 reactJs: checkboxes(data.technologies[1]),
                 laravel: checkboxes(data.technologies[2]),
                 ember: checkboxes(data.technologies[3]),
+                image: data.image, 
+                isLogin: req.session.isLogin 
             }
-            console.log('----------Detail Project-----------');
+
             console.log(data);
-            console.log('-----------------------------------');
-            res.render('detail-project', { project: data })
+            res.render('detail-project', { isLogin: req.session.isLogin, user: req.session.user, project: data })
         })
     })
 })
@@ -277,7 +280,9 @@ app.post('/add-project', upload.single('inputImage'), function (req, res) {
 app.get('/edit-project/:id', (req, res) => {
     const id = req.params.id
 
-    const query = `SELECT * FROM tb_projects WHERE id=${id}`
+    const query = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+    FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
+    WHERE tb_projects.id = ${id}`
 
     db.connect(function (err, client, done) {
         if (err) throw err // Mengecek tampilan error koneksi database

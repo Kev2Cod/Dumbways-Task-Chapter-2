@@ -11,7 +11,6 @@ if (isProduction) {
         },
     });
 } else {
-
     dbPool = new Pool({
         database: 'task_web_b33',
         port: 5432,

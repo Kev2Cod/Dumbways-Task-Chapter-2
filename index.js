@@ -59,12 +59,11 @@ app.get('/', function (req, res) {
                         isLogin: req.session.isLogin
                     }
                 }
-                console.log(data)
                 res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
             } else {
                 for (let i = 0; i < data.length; i++) {
 
-                    function testUser(fromDatabase, fromSession) {
+                    let isLoginUser = (fromDatabase, fromSession) => {
                         if (fromDatabase == fromSession) {
                             return true
                         } else {
@@ -83,12 +82,12 @@ app.get('/', function (req, res) {
                         laravel: checkboxes(data[i].technologies[2]),
                         ember: checkboxes(data[i].technologies[3]),
                         image: data[i].image,
-                        isLoginUser: testUser(data[i].author_email, req.session.user.email),
+                        isLoginUser: isLoginUser(data[i].author_email, req.session.user.email),
                         isLogin: req.session.isLogin
                     }
                 }
-                console.log(data)
-                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project:data })
+                // console.log(data)
+                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
             }
         })
     })
@@ -287,11 +286,12 @@ app.get('/edit-project/:id', (req, res) => {
         client.query(query, function (err, result) {
             if (err) throw err
             let data = result.rows[0]
+            console.log(data)
             done();
 
             data = {
                 id: id, //! harus ada
-                projectName: data.name,
+                projectName: data.project_name,
                 description: data.description,
                 startDate: convertFormatDate(data.start_date), //! format datenya di convert, 
                 endDate: convertFormatDate(data.end_date), //! format datenya di convert, 
@@ -350,19 +350,9 @@ app.post('/update-project/:id', upload.single('inputImage'), (req, res) => {
     let id = req.params.id
     const image = req.file.filename
 
-    data = {
-        projectName: data.projectName,
-        description: data.description,
-        startDate: data.starDate,
-        endDate: data.endDate,
-        nodeJs: checkboxes(data.nodeJs),
-        reactJs: checkboxes(data.reactJs),
-        laravel: checkboxes(data.laravel),
-        ember: checkboxes(data.ember),
-        image: data.image
-    }
+    const querySelect = `SELECT image FROM tb_projects
+    WHERE tb_projects.id = ${id}`
 
-    // console.log(data);
 
     const query = `UPDATE tb_projects 
     SET name='${data.projectName}', start_date='${data.startDate}', end_date='${data.endDate}', description='${data.description}', technologies='{"${data.nodeJs}","${data.reactJs}","${data.laravel}","${data.ember}"}', image='${image}'
@@ -370,6 +360,32 @@ app.post('/update-project/:id', upload.single('inputImage'), (req, res) => {
 
     db.connect(function (err, client, done) {
         if (err) throw err // Mengecek tampilan error koneksi database
+
+        client.query(querySelect, function (err, result) {
+            let lastImage = result.rows[0].image
+
+            data = {
+                projectName: data.projectName,
+                description: data.description,
+                startDate: data.startDate,
+                endDate: data.endDate,
+                nodeJs: checkboxes(data.nodeJs),
+                reactJs: checkboxes(data.reactJs),
+                laravel: checkboxes(data.laravel),
+                ember: checkboxes(data.ember),
+                image: lastImage
+            }
+            console.log(data)
+
+            const removeImage = (filePath) => {
+                console.log('filePath: ', filePath)
+                console.log('dir name: ', __dirname)
+
+                filePath = path.join(__dirname, '/uploads', filePath)
+                fs.unlink(filePath, err => console.log(err))
+            }
+            removeImage(lastImage)
+        })
 
         client.query(query, function (err, result) {
             if (err) throw err
@@ -380,7 +396,10 @@ app.post('/update-project/:id', upload.single('inputImage'), (req, res) => {
     })
 })
 
-
+// GET: CANCEL 
+app.get('/cancel', (req, res) => {
+    res.redirect('/')
+})
 
 // GET: CONTACT
 app.get('/contact', function (req, res) {

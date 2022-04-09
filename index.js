@@ -32,68 +32,65 @@ app.use(session({
 // GET : INDEX
 app.get('/', function (req, res) {
 
-    const query = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
+    const query = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_users.email AS author_email, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
     FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id`
 
     db.connect(function (err, client, done) {
         if (err) throw err // Kondisi untuk menampilkan error koneksi database
 
-        if (req.session.isLogin != true) { //! User Belum Login
-            client.query(query, function (err, result) {
-                if (err) throw err // Kondisi untuk menampilkan error query
-                let data = result.rows
-                done()
+        client.query(query, function (err, result) {
+            if (err) throw err // Kondisi untuk menampilkan error query
+            let data = result.rows
+            done()
 
-                data = data.map(function (item) {
-                    return {
-                        id: item.project_id,
-                        authorId: item.author_id,
-                        authorName: item.author_name,
-                        projectName: item.project_name,
-                        description: item.description.slice(0, 150) + '.....',
-                        duration: durationProject(item.start_date, item.end_date),
-                        nodeJs: checkboxes(item.technologies[0]),
-                        reactJs: checkboxes(item.technologies[1]),
-                        laravel: checkboxes(item.technologies[2]),
-                        ember: checkboxes(item.technologies[3]),
-                        image: item.image,
+            if (!req.session.isLogin) {
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = {
+                        id: data[i].project_id,
+                        authorName: data[i].author_name,
+                        projectName: data[i].project_name,
+                        description: data[i].description.slice(0, 150) + '.....',
+                        duration: durationProject(data[i].start_date, data[i].end_date),
+                        nodeJs: checkboxes(data[i].technologies[0]),
+                        reactJs: checkboxes(data[i].technologies[1]),
+                        laravel: checkboxes(data[i].technologies[2]),
+                        ember: checkboxes(data[i].technologies[3]),
+                        image: data[i].image,
                         isLogin: req.session.isLogin
                     }
-                })
-                console.log(data);
+                }
+                console.log(data)
                 res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
-            })
-        } else {
-            const authorId = req.session.user.id
+            } else {
+                for (let i = 0; i < data.length; i++) {
 
-            const queryAfterLogin = `SELECT tb_projects.id as project_id, tb_users.id AS author_id, tb_users.name AS author_name, tb_projects.name AS project_name, start_date, end_date, description, technologies, image
-            FROM tb_projects LEFT JOIN tb_users ON tb_projects.author_id = tb_users.id
-            WHERE author_id = ${authorId}`
+                    function testUser(fromDatabase, fromSession) {
+                        if (fromDatabase == fromSession) {
+                            return true
+                        } else {
+                            return false
+                        }
+                    }
 
-            client.query(queryAfterLogin, function (err, result) {
-                if (err) throw err // Kondisi untuk menampilkan error query
-                let data = result.rows
-                done()
-
-                data = data.map(function (item) {
-                    return {
-                        id: item.project_id,
-                        authorId: item.author_id,
-                        authorName: item.author_name,
-                        projectName: item.project_name,
-                        description: item.description.slice(0, 150) + '.....',
-                        duration: durationProject(item.start_date, item.end_date),
-                        nodeJs: checkboxes(item.technologies[0]),
-                        reactJs: checkboxes(item.technologies[1]),
-                        laravel: checkboxes(item.technologies[2]),
-                        ember: checkboxes(item.technologies[3]),
-                        image: item.image,
+                    data[i] = {
+                        id: data[i].project_id,
+                        authorName: data[i].author_name,
+                        projectName: data[i].project_name,
+                        description: data[i].description.slice(0, 150) + '.....',
+                        duration: durationProject(data[i].start_date, data[i].end_date),
+                        nodeJs: checkboxes(data[i].technologies[0]),
+                        reactJs: checkboxes(data[i].technologies[1]),
+                        laravel: checkboxes(data[i].technologies[2]),
+                        ember: checkboxes(data[i].technologies[3]),
+                        image: data[i].image,
+                        isLoginUser: testUser(data[i].author_email, req.session.user.email),
                         isLogin: req.session.isLogin
                     }
-                })
-                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project: data })
-            })
-        }
+                }
+                console.log(data)
+                res.render('index', { isLogin: req.session.isLogin, user: req.session.user, project:data })
+            }
+        })
     })
 })
 
@@ -219,8 +216,8 @@ app.get('/detail-project/:id', function (req, res) {
                 reactJs: checkboxes(data.technologies[1]),
                 laravel: checkboxes(data.technologies[2]),
                 ember: checkboxes(data.technologies[3]),
-                image: data.image, 
-                isLogin: req.session.isLogin 
+                image: data.image,
+                isLogin: req.session.isLogin
             }
 
             console.log(data);

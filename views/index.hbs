@@ -93,7 +93,7 @@
     <!-- Container MyProject -->
     <div class="container-fluit bg-light">
         <div class="container">
-            <h2 class="text-center text-uppercase my-5 py-5">My Project</h2>
+            <h2 class="text-center text-uppercase py-4 ">My Project</h2>
             <div class="row row-cols-1 row-cols-md-3 g-4" id="project-card">
                 <!-- Card-project-->
                 {{#each project}}
@@ -103,6 +103,7 @@
                         <div class="card-body p-4 ">
                             <a href="/detail-project/{{this.id}}">
                                 <h5 class="card-title">{{this.projectName}}</h5>
+                                <div id="author" class="form-text mb-2"> 1 Januari 2020 (statis) | {{this.authorName}} </div>
                             </a>
                             <p class="fw-light">Durasi : {{this.duration}}</p>
                             <p class="card-text">{{this.description}}</p>
@@ -127,12 +128,8 @@
                                 {{/if}}
                             </div>
                             <!-- End List-Icon -->
-                            {{#if isLogin}}
-                            {{else}}
-                            <div id="author" class="form-text "> 1 Januari 2020 (statis) | {{this.authorName}} </div>
-                            {{/if}}
                             <!-- Button Card -->
-                            {{#if isLogin}}
+                            {{#if isLoginUser}}
                             <div class="row d-flex justify-content-around">
                                 <a href="/edit-project/{{this.id}}" class="btn btn-dark text-white col-5 px-1">edit</a>
                                 <a href="/delete-project/{{this.id}}" class="btn btn-dark text-white col-5 px-1">delete</a>
